@@ -107,6 +107,10 @@ export default function App() {
     setEvents((prev) => prev.filter((e) => e.id !== id));
   };
 
+  const handleDeleteAllDayEvents = (dateStr: string) => {
+    setEvents((prev) => prev.filter((e) => e.date !== dateStr));
+  };
+
   const handleImportEvents = (importedList: Partial<CalendarEvent>[]) => {
     const validEvents: CalendarEvent[] = importedList.map((item, idx) => ({
       id: item.id || `imported-${Date.now()}-${idx}`,
@@ -134,6 +138,7 @@ export default function App() {
             events={events}
             onAddEvent={handleAddEvent}
             onDeleteEvent={handleDeleteEvent}
+            onDeleteAllDayEvents={handleDeleteAllDayEvents}
             onImportEvents={handleImportEvents}
           />
         )}

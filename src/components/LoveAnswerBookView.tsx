@@ -29,7 +29,7 @@ export const LoveAnswerBookView: React.FC = () => {
   };
 
   const handleCopy = async () => {
-    const text = `【安徒生花栗鼠・愛情解答之書】\n解答：${currentAnswer.quote}\n花栗鼠悄悄話：${currentAnswer.whisper}\n今日行動建議：${currentAnswer.action}`;
+    const text = `【解答之書】\n解答：${currentAnswer.quote}\n悄悄話：${currentAnswer.whisper}\n今日行動建議：${currentAnswer.action}`;
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
@@ -50,16 +50,16 @@ export const LoveAnswerBookView: React.FC = () => {
           </div>
           <div>
             <h2 className="font-serif-title text-xl sm:text-2xl font-bold text-[#4a2e18]">
-              愛情解答之書（The Book of Love Answers）
+              解答之書（The Book of Answers）
             </h2>
             <p className="text-xs text-[#8c6d4f]">
-              花栗鼠安徒生童話典藏・指引親密關係與心靈困惑的命中註定之書
+              故事月曆典藏・指引親密關係、人生抉擇與心靈困惑的命中註定之書
             </p>
           </div>
         </div>
 
         <p className="text-xs sm:text-sm text-[#66462c] leading-relaxed">
-          這是一本專為愛情、心動、想念與釋懷所寫的心靈答案之書。
+          這是一本專為愛情、生活抉擇、心動、想念與釋懷所寫的心靈答案之書。
           當你感到困惑、不知如何抉擇或需要一句安撫內心的話語時，請放鬆呼吸、撫平思緒，輕觸書本，翻開屬於你的宿命章節。
         </p>
       </div>
@@ -71,13 +71,13 @@ export const LoveAnswerBookView: React.FC = () => {
           <div className="space-y-6 max-w-md mx-auto">
             <div className="space-y-2">
               <label className="block text-xs font-bold text-[#582f0e]">
-                在心中默念或寫下你的感情提問（選填）：
+                在心中默念或寫下你的心中提問（選填）：
               </label>
               <input
                 type="text"
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
-                placeholder="例如：這段關係未來會往好的方向發展嗎？"
+                placeholder="例如：這段關係未來會往好的方向發展嗎？我的決定是對的嗎？"
                 className="w-full px-4 py-2.5 rounded-2xl border border-[#d8c3a5] bg-[#faf6ee] text-xs sm:text-sm text-[#432818] focus:outline-hidden focus:ring-2 focus:ring-[#8b5a2b]"
               />
             </div>
@@ -101,10 +101,10 @@ export const LoveAnswerBookView: React.FC = () => {
                   🌰
                 </div>
                 <h3 className="font-serif-title font-black text-2xl text-[#fff5cc] tracking-wider drop-shadow-md">
-                  愛情解答之書
+                  解答之書
                 </h3>
                 <p className="text-[10px] text-[#ffd700]/80 tracking-widest">
-                  安徒生小花栗鼠的私密筆記
+                  童話秘密筆記・指引心靈解答
                 </p>
               </div>
 

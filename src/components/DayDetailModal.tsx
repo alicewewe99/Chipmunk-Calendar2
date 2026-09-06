@@ -8,13 +8,15 @@ interface DayDetailModalProps {
   onClose: () => void;
   onAddEvent: (event: Omit<CalendarEvent, 'id' | 'createdAt'>) => void;
   onDeleteEvent: (id: string) => void;
+  onDeleteAllDayEvents?: (dateStr: string) => void;
 }
 
 const MARKER_OPTIONS: { type: CalendarMarkerType; emoji: string; label: string }[] = [
-  { type: 'star', emoji: '⭐', label: '星星記號' },
   { type: 'cake', emoji: '🎂', label: '生日蛋糕' },
+  { type: 'star', emoji: '⭐', label: '重要星號' },
+  { type: 'pin', emoji: '📌', label: '釘選備忘' },
   { type: 'heart', emoji: '❤️', label: '重要心動' },
-  { type: 'acorn', emoji: '🌰', label: '橡實約定' },
+  { type: 'acorn', emoji: '🌰', label: '童話橡實' },
   { type: 'work', emoji: '💼', label: '公務待辦' },
   { type: 'trip', emoji: '✈️', label: '旅行出遊' },
   { type: 'relax', emoji: '🌿', label: '休閒放鬆' },
@@ -26,14 +28,15 @@ export const DayDetailModal: React.FC<DayDetailModalProps> = ({
   onClose,
   onAddEvent,
   onDeleteEvent,
+  onDeleteAllDayEvents,
 }) => {
   const [copied, setCopied] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [title, setTitle] = useState('');
   const [time, setTime] = useState('09:00');
   const [notes, setNotes] = useState('');
-  const [selectedMarker, setSelectedMarker] = useState<CalendarMarkerType>('star');
-  const [selectedEmoji, setSelectedEmoji] = useState('⭐');
+  const [selectedMarker, setSelectedMarker] = useState<CalendarMarkerType>('cake');
+  const [selectedEmoji, setSelectedEmoji] = useState('🎂');
 
   if (!day) return null;
 
@@ -48,6 +51,26 @@ export const DayDetailModal: React.FC<DayDetailModalProps> = ({
     } catch {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleQuickStamp = (marker: CalendarMarkerType, emoji: string, defaultTitle: string) => {
+    onAddEvent({
+      date: day.dateStr,
+      title: defaultTitle,
+      marker,
+      emoji,
+    });
+  };
+
+  const handleDeleteAll = () => {
+    if (day.events.length === 0) return;
+    if (window.confirm(`確定要一鍵刪除 ${day.year}/${day.month}/${day.day} 的所有標記與行程嗎？`)) {
+      if (onDeleteAllDayEvents) {
+        onDeleteAllDayEvents(day.dateStr);
+      } else {
+        day.events.forEach((ev) => onDeleteEvent(ev.id));
+      }
     }
   };
 
@@ -104,22 +127,22 @@ export const DayDetailModal: React.FC<DayDetailModalProps> = ({
             )}
           </div>
 
-          <div className="flex items-center gap-3 text-sm text-[#735034] flex-wrap mt-1">
-            <span className="font-medium bg-[#f5ecdf] px-2 py-0.5 rounded-md">
-              農曆 {day.lunarMonthStr}{day.lunarDayStr}
+          <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-[#5a3619] flex-wrap mt-2">
+            <span className="font-bold bg-[#f4e8d8] text-[#582f0e] border border-[#ddc6aa] px-2.5 py-1 rounded-lg shadow-2xs">
+              🏮 農曆 {day.lunarFullStr || `${day.lunarMonthStr}${day.lunarDayStr}`}
             </span>
             {day.solarTerm && (
-              <span className="font-medium bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md">
-                節氣：{day.solarTerm}
+              <span className="font-extrabold bg-emerald-100 text-emerald-900 border border-emerald-300 px-2.5 py-1 rounded-lg shadow-2xs">
+                🌿 節氣：{day.solarTerm}
               </span>
             )}
             {day.westernHoliday && (
-              <span className="font-medium bg-amber-100 text-amber-900 px-2 py-0.5 rounded-md">
+              <span className="font-medium bg-amber-100 text-amber-900 px-2.5 py-1 rounded-lg">
                 {day.westernHoliday}
               </span>
             )}
             {day.workdayNote && (
-              <span className="font-medium bg-stone-200 text-stone-800 px-2 py-0.5 rounded-md">
+              <span className="font-medium bg-stone-200 text-stone-800 px-2.5 py-1 rounded-lg">
                 {day.workdayNote}
               </span>
             )}
@@ -144,10 +167,70 @@ export const DayDetailModal: React.FC<DayDetailModalProps> = ({
             </div>
             <button
               onClick={handleCopy}
-              className="inline-flex items-center gap-1 text-xs font-semibold text-[#8b5a2b] hover:text-[#582f0e] bg-white border border-[#d8c3a5] px-2.5 py-1 rounded-lg shrink-0 shadow-2xs hover:bg-[#faf4ec] transition"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-[#8b5a2b] hover:text-[#582f0e] bg-white border border-[#d8c3a5] px-2.5 py-1 rounded-lg shrink-0 shadow-2xs hover:bg-[#faf4ec] transition cursor-pointer"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
               <span>{copied ? '已複製' : '複製日期'}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Quick Emoji Marker Bar (🎂 ⭐ 📌) & 1-Click Delete */}
+        <div className="p-3 bg-[#fdf6ec] border-2 border-[#e8d7c3] rounded-2xl mb-4 space-y-2.5 shadow-2xs">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs font-bold text-[#582f0e] flex items-center gap-1">
+              <span>標記 emoji：</span>
+              <span className="text-[#8c6d4f] font-normal text-[11px]">點選立即標記此日</span>
+            </span>
+            {day.events.length > 0 && (
+              <button
+                type="button"
+                onClick={handleDeleteAll}
+                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-rose-700 bg-rose-100 hover:bg-rose-200 border border-rose-300 rounded-lg shadow-2xs active:scale-95 transition cursor-pointer"
+                title="一鍵清除此日所有已設定標記"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                <span>一鍵刪除全部 ({day.events.length})</span>
+              </button>
+            )}
+          </div>
+
+          <div className="grid grid-cols-4 gap-2">
+            <button
+              type="button"
+              onClick={() => handleQuickStamp('cake', '🎂', '🎂 生日慶祝')}
+              className="flex items-center justify-center gap-1.5 py-2 px-1 rounded-xl bg-white hover:bg-[#faeee0] active:bg-[#f3dfc8] border-2 border-[#d9ba9b] text-xs font-bold text-[#542e0c] shadow-2xs active:scale-95 transition cursor-pointer"
+              title="標記生日蛋糕 🎂"
+            >
+              <span className="text-lg">🎂</span>
+              <span>生日</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleQuickStamp('star', '⭐', '⭐ 重要事項')}
+              className="flex items-center justify-center gap-1.5 py-2 px-1 rounded-xl bg-white hover:bg-[#faeee0] active:bg-[#f3dfc8] border-2 border-[#d9ba9b] text-xs font-bold text-[#542e0c] shadow-2xs active:scale-95 transition cursor-pointer"
+              title="標記重要星號 ⭐"
+            >
+              <span className="text-lg">⭐</span>
+              <span>重要</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleQuickStamp('pin', '📌', '📌 釘選備忘')}
+              className="flex items-center justify-center gap-1.5 py-2 px-1 rounded-xl bg-white hover:bg-[#faeee0] active:bg-[#f3dfc8] border-2 border-[#d9ba9b] text-xs font-bold text-[#542e0c] shadow-2xs active:scale-95 transition cursor-pointer"
+              title="標記釘選備忘 📌"
+            >
+              <span className="text-lg">📌</span>
+              <span>備忘</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowAddForm(true)}
+              className="flex items-center justify-center gap-1 py-2 px-1 rounded-xl bg-[#f0e2cf] hover:bg-[#e6d3bb] active:bg-[#d8bf9f] text-xs font-bold text-[#4a2e18] shadow-2xs active:scale-95 transition cursor-pointer"
+              title="新增帶時間或備註的自訂詳細行程"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>自訂行程</span>
             </button>
           </div>
         </div>
@@ -157,15 +240,15 @@ export const DayDetailModal: React.FC<DayDetailModalProps> = ({
           <div className="flex items-center justify-between">
             <h4 className="font-serif-title font-bold text-sm text-[#582f0e] flex items-center gap-1.5">
               <Sparkles className="w-4 h-4 text-amber-600" />
-              <span>當日行程與提醒事項 ({day.events.length})</span>
+              <span>當日已標記項目 ({day.events.length})</span>
             </h4>
             {!showAddForm && (
               <button
                 onClick={() => setShowAddForm(true)}
-                className="inline-flex items-center gap-1 text-xs font-medium text-[#7f4f24] hover:text-[#582f0e] bg-[#f4e9db] hover:bg-[#ebdcc8] px-2.5 py-1 rounded-lg transition"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-[#7f4f24] hover:text-[#582f0e] bg-[#f4e9db] hover:bg-[#ebdcc8] px-2.5 py-1 rounded-lg transition cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>新增記號/行程</span>
+                <span>新增其他記號</span>
               </button>
             )}
           </div>

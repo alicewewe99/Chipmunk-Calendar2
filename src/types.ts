@@ -1,4 +1,4 @@
-export type CalendarMarkerType = 'star' | 'cake' | 'heart' | 'acorn' | 'work' | 'trip' | 'relax' | 'sparkle';
+export type CalendarMarkerType = 'cake' | 'star' | 'pin' | 'heart' | 'acorn' | 'work' | 'trip' | 'relax' | 'sparkle';
 
 export interface CalendarEvent {
   id: string;

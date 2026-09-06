@@ -38,7 +38,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onTabChange }) => {
     { id: 'temple', label: '鎮海宮靈籤', icon: ScrollText, badge: '六十甲子' },
     { id: 'romance', label: '浪漫天使', icon: Heart, badge: '44張' },
     { id: 'yesno', label: 'YES/NO愛情', icon: HelpCircle, badge: '指引' },
-    { id: 'book', label: '愛情解答之書', icon: BookOpen, badge: '占卜' },
+    { id: 'book', label: '解答之書', icon: BookOpen, badge: '占卜' },
   ];
 
   return (

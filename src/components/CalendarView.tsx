@@ -28,6 +28,7 @@ interface CalendarViewProps {
   events: CalendarEvent[];
   onAddEvent: (event: Omit<CalendarEvent, 'id' | 'createdAt'>) => void;
   onDeleteEvent: (id: string) => void;
+  onDeleteAllDayEvents?: (dateStr: string) => void;
   onImportEvents: (newEvents: Partial<CalendarEvent>[]) => void;
 }
 
@@ -60,6 +61,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   events,
   onAddEvent,
   onDeleteEvent,
+  onDeleteAllDayEvents,
   onImportEvents,
 }) => {
   // Requirement: starts from year 2026 onwards
@@ -227,24 +229,27 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       </div>
 
       {/* Calendar Control Bar & Year/Month Pickers */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-3 sm:p-4 bg-[#fbf6ec] border border-[#dec9af] rounded-2xl shadow-2xs">
+      <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 sm:p-4 bg-[#fbf6ec] border-2 border-[#dec9af] rounded-3xl shadow-xs">
         {/* Navigation buttons & Selectors */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex items-center bg-white border border-[#dec9af] rounded-xl p-0.5 shadow-2xs">
-            <button
-              onClick={handlePrevMonth}
-              disabled={currentYear <= 2026 && currentMonth === 1}
-              className="p-1.5 text-[#6c4a2d] hover:bg-[#f5ecdf] rounded-lg disabled:opacity-30 disabled:hover:bg-transparent transition"
-              aria-label="上個月"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
+        <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap">
+          {/* Large Previous Month Button */}
+          <button
+            onClick={handlePrevMonth}
+            disabled={currentYear <= 2026 && currentMonth === 1}
+            className="flex items-center gap-1 sm:gap-1.5 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-2xl font-bold text-sm sm:text-base text-[#4a2e18] bg-white hover:bg-[#f6eee3] active:bg-[#ede0d0] border-2 border-[#d4ba96] shadow-xs hover:shadow-sm disabled:opacity-35 disabled:cursor-not-allowed active:scale-95 transition-all cursor-pointer"
+            title="切換至上一個月份"
+            aria-label="上個月"
+          >
+            <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-[#7f4f24] stroke-[2.5]" />
+            <span>上月</span>
+          </button>
 
-            {/* Year Selector */}
+          {/* Year & Month Pickers */}
+          <div className="flex items-center bg-white border-2 border-[#d4ba96] rounded-2xl px-2.5 sm:px-3 py-1.5 sm:py-2 shadow-xs">
             <select
               value={currentYear}
               onChange={(e) => setCurrentYear(parseInt(e.target.value, 10))}
-              className="px-2 py-1 text-xs sm:text-sm font-bold text-[#4a2e18] bg-transparent focus:outline-hidden cursor-pointer"
+              className="text-sm sm:text-base font-black text-[#4a2e18] bg-transparent focus:outline-hidden cursor-pointer"
             >
               {availableYears.map((yr) => (
                 <option key={yr} value={yr}>
@@ -253,13 +258,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               ))}
             </select>
 
-            <span className="text-[#bfa286]">/</span>
+            <span className="text-[#c4a98c] mx-1 font-bold">/</span>
 
-            {/* Month Selector */}
             <select
               value={currentMonth}
               onChange={(e) => setCurrentMonth(parseInt(e.target.value, 10))}
-              className="px-2 py-1 text-xs sm:text-sm font-bold text-[#4a2e18] bg-transparent focus:outline-hidden cursor-pointer"
+              className="text-sm sm:text-base font-black text-[#4a2e18] bg-transparent focus:outline-hidden cursor-pointer"
             >
               {MONTH_NAMES_ZH.map((mName, idx) => (
                 <option key={idx + 1} value={idx + 1}>
@@ -267,22 +271,26 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 </option>
               ))}
             </select>
-
-            <button
-              onClick={handleNextMonth}
-              className="p-1.5 text-[#6c4a2d] hover:bg-[#f5ecdf] rounded-lg transition"
-              aria-label="下個月"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
           </div>
+
+          {/* Large Next Month Button */}
+          <button
+            onClick={handleNextMonth}
+            className="flex items-center gap-1 sm:gap-1.5 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-2xl font-bold text-sm sm:text-base text-[#4a2e18] bg-white hover:bg-[#f6eee3] active:bg-[#ede0d0] border-2 border-[#d4ba96] shadow-xs hover:shadow-sm active:scale-95 transition-all cursor-pointer"
+            title="切換至下一個月份"
+            aria-label="下個月"
+          >
+            <span>下月</span>
+            <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 text-[#7f4f24] stroke-[2.5]" />
+          </button>
 
           {/* Return Today Button */}
           <button
             onClick={handleGoToday}
-            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-[#6c4a2d] bg-white hover:bg-[#f5ecdf] border border-[#dec9af] rounded-xl shadow-2xs active:scale-95 transition"
+            className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-2xl font-black text-xs sm:text-sm text-[#542e0c] bg-gradient-to-r from-[#faecd8] to-[#f4deb8] hover:from-[#f4e0c5] hover:to-[#edd0a2] border-2 border-[#cfab84] shadow-xs hover:shadow-sm active:scale-95 transition-all cursor-pointer"
+            title="立即跳回今天所在月份"
           >
-            <RotateCcw className="w-3 h-3" />
+            <CalendarIcon className="w-4 h-4 text-[#8b5a2b]" />
             <span>回到今天</span>
           </button>
         </div>
@@ -426,14 +434,14 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             <span>二十四節氣</span>
           </span>
           <span className="flex items-center gap-1">
-            <span className="text-xs">⭐ 🎂 🌰</span>
-            <span>自訂特殊記號</span>
+            <span className="text-xs">🎂 ⭐ 📌</span>
+            <span className="font-semibold text-[#542e0c]">標記 emoji (支援一鍵刪除)</span>
           </span>
         </div>
 
         <div className="flex items-center gap-1 text-[#8c6d4f]">
           <Info className="w-3 h-3" />
-          <span>點選任一天即可編輯行程與複製日期</span>
+          <span>點選任一天即可加入標記、自訂行程或一鍵清除</span>
         </div>
       </div>
 
@@ -462,7 +470,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               <div
                 key={idx}
                 onClick={() => setSelectedDay(dayItem)}
-                className={`relative min-h-[82px] sm:min-h-[105px] p-1.5 sm:p-2 cursor-pointer transition-all duration-150 flex flex-col justify-between select-none ${
+                className={`relative min-h-[90px] sm:min-h-[112px] p-1.5 sm:p-2 cursor-pointer transition-all duration-150 flex flex-col justify-between select-none ${
                   !dayItem.isCurrentMonth
                     ? 'bg-[#faf6ee]/50 opacity-40 hover:opacity-80'
                     : 'bg-white hover:bg-[#fbf4eb]'
@@ -472,12 +480,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                     : ''
                 }`}
               >
-                {/* Top: Day Number + Today / Lunar / Holiday badges */}
+                {/* Top: Day Number + Lunar Date (FULLY visible and prominent, never hidden) */}
                 <div>
-                  <div className="flex items-center justify-between gap-1">
+                  <div className="flex items-start justify-between gap-1">
                     {/* Day number with holiday red highlight */}
                     <span
-                      className={`text-sm sm:text-base font-bold ${
+                      className={`text-sm sm:text-base font-bold leading-none ${
                         isRedHoliday ? 'text-rose-600 font-black' : 'text-[#432818]'
                       } ${
                         dayItem.isToday
@@ -488,16 +496,17 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                       {dayItem.day}
                     </span>
 
-                    {/* Lunar Date or Solar Term */}
-                    <span className="text-[10px] text-[#8c6d4f] font-medium truncate">
-                      {dayItem.solarTerm ? (
-                        <span className="text-emerald-700 font-bold bg-emerald-50 px-1 rounded-sm">
+                    {/* Complete Lunar Date display - completely visible, unmasked */}
+                    <div className="flex flex-col items-end shrink-0">
+                      <span className="text-[10.5px] sm:text-xs font-bold text-[#674121] leading-none whitespace-nowrap">
+                        {dayItem.lunarDayStr === '初一' ? dayItem.lunarMonthStr : dayItem.lunarDayStr}
+                      </span>
+                      {dayItem.solarTerm && (
+                        <span className="text-[9px] sm:text-[9.5px] font-extrabold text-emerald-800 bg-emerald-100/90 border border-emerald-300/70 px-1 py-0.2 rounded-xs whitespace-nowrap leading-none mt-0.5">
                           {dayItem.solarTerm}
                         </span>
-                      ) : (
-                        dayItem.lunarDayStr
                       )}
-                    </span>
+                    </div>
                   </div>
 
                   {/* Holiday / Workday label */}
@@ -530,7 +539,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                   </div>
                 </div>
 
-                {/* Bottom: Custom markers (⭐, 🎂, 🌰, emoji) and event count */}
+                {/* Bottom: Custom markers (🎂, ⭐, 📌, emoji) and event count */}
                 <div className="mt-1 flex items-center justify-between pt-1 border-t border-[#f4e7d5]/60">
                   <div className="flex items-center gap-0.5 overflow-hidden">
                     {dayItem.events.slice(0, 3).map((ev) => (
@@ -586,6 +595,16 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               return {
                 ...prev,
                 events: prev.events.filter((e) => e.id !== id),
+              };
+            });
+          }}
+          onDeleteAllDayEvents={(dateStr) => {
+            onDeleteAllDayEvents?.(dateStr);
+            setSelectedDay((prev) => {
+              if (!prev) return null;
+              return {
+                ...prev,
+                events: [],
               };
             });
           }}
